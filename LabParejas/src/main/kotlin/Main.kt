@@ -1,10 +1,5 @@
 import com.github.kittinunf.fuel.Fuel
-import dbmodels.Books
-import models.Cancion
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
@@ -32,148 +27,153 @@ fun menuterciario(): String{
 fun menufav (): String{
     return """
         Sus canciones favoritas son:
-        """".trimIndent()
+        """.trimIndent()
 }
 
-fun cancionesPorNombre(val nombre:String){
+
+
+fun cancionesPorNombre( nombre:String){
     var lista: String
     var selecion : Boolean = true
     var respuesta: String
     var respuesta2: Int
     var num: Int = 0
-    for (cancion in Canciones.selectAll()) {
+    for (cancion in Canciones.select { Canciones.song.like("%${nombre}%") }) {
+                num++
+                println("$num. ${cancion[Canciones.song]}")
+            }
 
-        if(cancion.name == nombre){
-            num++
-            println("$num. ${cancion.name}")
-        }
-    }
-    println("Desea guardar alguna canción como favorita? (Si/No)")
+        println("Desea guardar alguna canción como favorita? (Si/No)")
 
-    while (selecion){
+        while (selecion){
         respuesta = readLine()!!
         when (respuesta){
-            "Si" ->{println("Elija cual (ingrese el numero)")
-                respuesta2 = readLine()!!.toInt()
-                var num2: Int = 0
-                for (cancion in Canciones.selectAll()) {
-                    num2++
-                    if(cancion.name == nombre){
-                        num2++
-                        println("$num. ${cancion.name}")
-                    }
-                    if(num2 == respuesta2){
-                        cancion.isFavorite = true
-                    }
-                }
-                selecion = false
-            }
-            "No" ->{selecion = false}
-            else -> println("Lo que ingreso no es valido, intente de nuevo.")
+        "Si" ->{println("Elija cual (ingrese el numero)")
+        respuesta2 = readLine()!!.toInt()
+        var num2: Int = 0
+        for (cancion in Canciones.selectAll()) {
+        num2++
+        if(cancion[Canciones.song] == nombre){
+        num2++
+        println("$num. ${cancion[Canciones.song]}")
         }
-    }
-}
-fun cancionesPorArtista(val nombre:String){
-    var lista: String
-    var selecion : Boolean = true
-    var respuesta: String
-    var respuesta2: Int
-    var num: Int = 0
-    for (cancion in Canciones.selectAll()) {
+        if(num2 == respuesta2){
+            //cancion[Canciones.isFavorite] = true
+        //cancionisFavorite = true
+        }
+        }
+        selecion = false
+        }
+        "No" ->{selecion = false}
+        else -> println("Lo que ingreso no es valido, intente de nuevo.")
+        }
+        }
+        }
+/**
+        fun cancionesPorArtista(nombre:String){
+        var lista: String
+        var selecion : Boolean = true
+        var respuesta: String
+        var respuesta2: Int
+        var num: Int = 0
+        for (cancion in Canciones.selectAll()) {
 
         if(cancion.artistName == nombre){
-            num++
-            println("$num. ${cancion.name} - ${cancion.artistName}")
+        num++
+        println("$num. ${cancion.song} - ${cancion.artistName}")
         }
-    }
-    println("Desea guardar alguna canción como favorita? (Si/No)")
+        }
+        println("Desea guardar alguna canción como favorita? (Si/No)")
 
-    while (selecion){
+        while (selecion){
         respuesta = readLine()!!
         when (respuesta){
-            "Si" ->{println("Elija cual (ingrese el numero)")
-                respuesta2 = readLine()!!.toInt()
-                var num2: Int = 0
-                for (cancion in Canciones.selectAll()) {
-                    if(cancion.artistName == nombre){
-                        num++
-                        println("$num. ${cancion.name} - ${cancion.artistName}")
-                    }
-                    if(num2 == respuesta2){
-
-                        cancion.isFavorite = true
-                    }
-                }
-                selecion = false
-            }
-            "No" ->{selecion = false}
-            else -> println("Lo que ingreso no es valido, intente de nuevo.")
+        "Si" ->{println("Elija cual (ingrese el numero)")
+        respuesta2 = readLine()!!.toInt()
+        var num2: Int = 0
+        for (cancion in Canciones.selectAll()) {
+        if(cancion.artistName == nombre){
+        num++
+        println("$num. ${cancion.song} - ${cancion.artistName}")
         }
-    }
-}
-fun favSongs(){
-    var lista : String
-    var num: Int = 0
-    for (cancion in Canciones.selectAll()){
+        if(num2 == respuesta2){
+
+        cancion.isFavorite = true
+        }
+        }
+        selecion = false
+        }
+        "No" ->{selecion = false}
+        else -> println("Lo que ingreso no es valido, intente de nuevo.")
+        }
+        }
+        }
+        fun favSongs(){
+        var lista : String
+        var num: Int = 0
+        for (cancion in Canciones.selectAll()){
         num++
         if (cancion.isFavorite == true)
-            println("$num. ${cancion.name}")
-    }
-}
-
-fun main(args: Array<String>) {
-    // Conexiones//
-    val url = "https://next.json-generator.com/api/json/get/EkeSgmXycS"
-
-    val (request, response, result ) = Fuel.get(url).responseObject(Cancion.CancionArrayDeserializer())
-    val (canciones, err) = result
-
-    Database.connect(
-            "jdbc:postgresql:misctests",
-            "org.postgresql.Driver",
-            "postgres",
-            "postgres"
-    )
-
-    transaction {
-        SchemaUtils.create(Canciones)
-
-        canciones?.forEach{
-            Canciones.insert{
-                it
-            }
+        println("$num. ${cancion.song}")
         }
-    }
-    Thread.sleep(5000)
-
-    // Programa Normal//
-    var on : Boolean = true
-    var men: Int
-    var nombre: String
-    println(menupricipal())
-    men = readLine()!!.toInt()
-    while(on) {
-        when (men) {
-            1 -> {
-                println(menusecundario())
-                nombre = readLine()!!
-                cancionesPorNombre(nombre)
-            }
-            2 -> {
-                println(menuterciario())
-                nombre = readLine()!!
-                cancionesPorArtista(nombre)
-            }
-            3 -> {
-                println(menufav())
-                favSongs()
-            }
-            4 -> {
-                println("Saliendo del programa")
-                on = false
-            }
-            else -> println("Opcion no valida, intente de nuevo.")
         }
-    }
+         **/
+        fun main(args: Array<String>) {
+            // Conexiones//
+            val url = "https://next.json-generator.com/api/json/get/EkeSgmXycS"
 
-}
+            val (request, response, result) = Fuel.get(url).responseObject(Cancion.CancionArrayDeserializer())
+            val (canciones, err) = result
+
+            Database.connect(
+                    "jdbc:postgresql:misctests",
+                    "org.postgresql.Driver",
+                    "postgres",
+                    "katina"
+            )
+
+            transaction {
+                SchemaUtils.create(Canciones)
+
+                canciones?.forEach {
+                    Canciones.insert {
+                        it
+                    }
+                }
+            }
+            Thread.sleep(5000)
+
+            // Programa Normal//
+            var on: Boolean = true
+            var men: Int
+            var nombre: String
+            while (on) {
+                println(menupricipal())
+                men = readLine()!!.toInt()
+                when (men) {
+                    1 -> {
+                        println(menusecundario())
+                        nombre = readLine()!!
+                        cancionesPorNombre(nombre)
+                    }
+                    2 -> {
+                        println(menuterciario())
+                        nombre = readLine()!!
+                        //cancionesPorArtista(nombre)
+                    }
+                    3 -> {
+                        println(menufav())
+                        //favSongs()
+                    }
+                    4 -> {
+                        println("Saliendo del programa")
+                        on = false
+                    }
+                    else -> println("Opcion no valida, intente de nuevo.")
+                }
+            }
+
+        }
+
+
+

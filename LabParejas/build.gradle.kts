@@ -18,6 +18,10 @@ dependencies {
     compile ("com.google.code.gson:gson:2.8.5")
     compile("org.postgresql:postgresql:42.2.5")
     compile("org.jetbrains.exposed:exposed:0.10.5")
+    compile("slf4j-simple-1.6.1.jar")
+    compile("slf4j-api-1.6.1.jar")
+    compile("slf4j-simple-1.6.2.jar")
+
 }
 
 tasks.withType<KotlinCompile> {

@@ -1,4 +1,3 @@
-package models
 
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.google.gson.Gson
